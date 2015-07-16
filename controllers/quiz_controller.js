@@ -1,20 +1,36 @@
 var models= require('../models/models.js');
 
 
-exports.question=function(req,res){
-  models.Quiz.findAll().then(function(quiz){
-    res.render('quizes/question', {pregunta: quiz[0].pregunta});
-  });
+// Autoload :id
+exports.load = function(req, res, next, quizId) {
+  models.Quiz.find(quizId).then(function(quiz) {
+      if (quiz) {
+        req.quiz = quiz;
+        next();
+      } else{next(new Error('No existe quizId=' + quizId));}
+    }
+  ).catch(function(error){next(error);});
 };
 
+// GET /quizes
+
+exports.index= function(req,res){
+  models.Quiz.findAll().then(function(quizes){
+    res.render('quizes/index',{quizes: quizes});
+  }).catch(function(error){next(error);});
+};
+
+// Get /quizes/:id
+exports.show=function(req,res){
+    res.render('quizes/show', {quiz: req.quiz});
+};
+
+//Get /quizes/:id/answer
 exports.answer=function(req,res,next){
-   models.Quiz.findAll().then(function(quiz){
-      patter=  new RegExp(quiz[0].respuesta,'i');
-        if (req.query.respuesta.match(patter)) {
-            res.render('quizes/answer', {resultado: 'Correcto'});
-        }else{
-            res.render('quizes/answer', {resultado: 'Incorrecto'});
-        }
-   });
+      var resultado='Incorrecto';
+      if (req.query.respuesta === req.quiz.respuesta) {
+        resultado='Correcto';
+      }
+    res.render('quizes/answer', {quiz: req.quiz,resultado: resultado});
 };
 

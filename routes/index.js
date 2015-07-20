@@ -11,7 +11,7 @@ router.get('/', function(req, res, next) {
 router.param('quizId',quizController.load);
 
 //definicion de rutas
-router.get('/quizes/:search?', quizController.index);
+router.get('/quizes', quizController.index);
 router.get('/quizes/:quizId(\\d+)', quizController.show);
 router.get('/quizes/:quizId(\\d+)/answer', quizController.answer);
 router.get('/author', function(req,res){

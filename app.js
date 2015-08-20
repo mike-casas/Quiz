@@ -8,6 +8,8 @@ var partials= require('express-partials');
 var methodOverride=require('method-override');
 var routes = require('./routes/index');
 
+var session= require('express-session');
+
 var app = express();
 
 // view engine setup
@@ -20,9 +22,46 @@ app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
+app.use(cookieParser('Quiz 2015'));
+app.use(session());
 app.use(cookieParser());
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
+
+
+// sesion destruir despues de cierto tiempo
+app.use(function(req, res, next) {
+  var tiempo_final;
+
+  req.session.tiempo1 = req.session.tiempo2 || 0;
+  req.session.tiempo2 = new Date().getTime();
+  tiempo_final = req.session.tiempo2-req.session.tiempo1;
+
+  if((req.session.user) && (tiempo_final > 20000)){
+    delete req.session.user;
+    res.redirect(req.session.redir.toString());
+  }
+  next();
+});
+
+
+
+// Helpers dinamicos:
+app.use(function(req, res, next) {
+
+  // si no existe lo inicializa
+  if (!req.session.redir) {
+    req.session.redir = '/';
+  }
+  // guardar path en session.redir para despues de login
+  if (!req.path.match(/\/login|\/logout|\/user/)) {
+    req.session.redir = req.path;
+  }
+
+  // Hacer visible req.session en las vistas
+  res.locals.session = req.session;
+  next();
+});
 
 app.use('/', routes);
 
